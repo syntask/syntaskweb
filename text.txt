@@ -1,0 +1,262 @@
+document.addEventListener("DOMContentLoaded", function() {
+    let textWithoutLineBreaks = "";
+    let busyDivIndices = new Set();
+    // Function to fetch and display text from a local file
+    function fetchAndDisplayText() {
+        // Return the fetch promise chain
+        return fetch('text.txt')
+            .then(response => response.text())
+            .then(text => {
+                textWithoutLineBreaks = text.replace(/\s+/g, " ");
+                createDivs(textWithoutLineBreaks);
+            })
+            .catch(error => console.error('Error fetching the text file:', error));
+    }
+
+    // Function to create divs based on viewport height and fill them with text
+    function createDivs(fullText) {
+        const divContainer = document.getElementById('codeContainer');
+        if (!divContainer) {
+            console.error('codeContainer not found');
+            return;
+        }
+
+        // Clear existing divs
+        divContainer.innerHTML = '';
+
+        const viewportHeight = window.innerHeight;
+        const numberOfDivs = Math.ceil(viewportHeight / 14);
+        const textLength = fullText.length;
+
+        for (let i = 0; i < numberOfDivs; i++) {
+            const div = document.createElement('div');
+            
+            // Adjusted logic for determining text portion
+            let startIndex = (i * 400) % textLength;
+            let endIndex = startIndex + 400;
+            let textForDiv = fullText.slice(startIndex, endIndex);
+
+            // If the slice is shorter than 200 characters, wrap and continue from the beginning
+            if (textForDiv.length < 400) {
+                // Append from the start of the text to fulfill the remainder
+                let remainder = 400 - textForDiv.length;
+                textForDiv += fullText.slice(0, remainder);
+            }
+
+            div.textContent = textForDiv; 
+            divContainer.appendChild(div);
+        }
+    }
+
+    function appendRandomText(textWithoutLineBreaks) {
+        const divs = document.getElementById('codeContainer').children;
+        if (divs.length === 0) return; // Exit if no divs are found
+
+        // Attempt to select a random div that is not currently being manipulated
+        let attempts = 0;
+        let randomIndex;
+        do {
+            randomIndex = Math.floor(Math.random() * divs.length);
+            attempts++;
+            // Ensure we don't loop indefinitely
+            if (attempts > divs.length * 2) return;
+        } while (busyDivIndices.has(randomIndex));
+
+        busyDivIndices.add(randomIndex); // Mark this div as being manipulated
+        const randomDiv = divs[randomIndex];
+        let text = randomDiv.textContent;
+
+        // Find all space indices in the div text
+        const spaceIndices = [];
+        for (let i = 0; i < text.length; i++) {
+            if (text[i] === " ") spaceIndices.push(i);
+        }
+        // Ensure there is at least one space to work with
+        if (spaceIndices.length > 0) {
+            // Generate random text segment from textWithoutLineBreaks
+            const startSpaces = textWithoutLineBreaks.match(/\s+/g);
+            if (!startSpaces || startSpaces.length === 0) {
+                busyDivIndices.delete(randomIndex); // No spaces found in the source text, clear busy status
+                return;
+            }
+            const randomStartSpaceIndex = Math.floor(Math.random() * (startSpaces.length - 1));
+            const startSpaceIndex = textWithoutLineBreaks.indexOf(startSpaces[randomStartSpaceIndex]);
+            let endSpaceIndex = startSpaceIndex + 5 + Math.floor(Math.random() * 16); // 5 to 30 characters
+            
+            // Adjust endSpaceIndex to ensure it ends with a space
+            while (endSpaceIndex < textWithoutLineBreaks.length && textWithoutLineBreaks[endSpaceIndex] !== ' ') {
+                endSpaceIndex++;
+            }
+
+            // Extract the substring
+            const randomTextSegment = textWithoutLineBreaks.substring(startSpaceIndex, endSpaceIndex + 1);
+
+            // Select a random space index in the div to insert the text
+            const randomDivSpaceIndex = spaceIndices[Math.floor(Math.random() * spaceIndices.length)];
+            // Prepare to insert the random text segment after the selected space
+            const beforeText = text.slice(0, randomDivSpaceIndex + 1);
+            const afterText = text.slice(randomDivSpaceIndex + 1);
+            
+            // Function to insert text character by character
+            let insertIndex = 0;
+            function insertTextByChar() {
+                if (insertIndex < randomTextSegment.length) {
+                    randomDiv.textContent = beforeText + randomTextSegment.slice(0, insertIndex + 1) + afterText;
+                    insertIndex++;
+                    setTimeout(insertTextByChar, 100); // Continue inserting next character after timeout
+                } else {
+                    busyDivIndices.delete(randomIndex); // Clear busy status once text insertion is complete
+                }
+            }
+
+            insertTextByChar(); // Start inserting text character by character
+        } else {
+            // If no space was found, clear the busy status immediately
+            busyDivIndices.delete(randomIndex);
+        }
+    }
+
+
+
+    // Initial call to fetch text and create divs
+    fetchAndDisplayText().then(() => {
+        setInterval(() => appendRandomText(textWithoutLineBreaks), 50);
+    });
+
+    // Recreate divs on window resize
+    window.onresize = function() {
+        fetchAndDisplayText(); // Consider optimizing to avoid refetching the text file on resize
+    };
+
+});
+document.addEventListener("DOMContentLoaded", function() {
+    let textWithoutLineBreaks = "";
+    let busyDivIndices = new Set();
+    // Function to fetch and display text from a local file
+    function fetchAndDisplayText() {
+        // Return the fetch promise chain
+        return fetch('text.txt')
+            .then(response => response.text())
+            .then(text => {
+                textWithoutLineBreaks = text.replace(/\s+/g, " ");
+                createDivs(textWithoutLineBreaks);
+            })
+            .catch(error => console.error('Error fetching the text file:', error));
+    }
+
+    // Function to create divs based on viewport height and fill them with text
+    function createDivs(fullText) {
+        const divContainer = document.getElementById('codeContainer');
+        if (!divContainer) {
+            console.error('codeContainer not found');
+            return;
+        }
+
+        // Clear existing divs
+        divContainer.innerHTML = '';
+
+        const viewportHeight = window.innerHeight;
+        const numberOfDivs = Math.ceil(viewportHeight / 14);
+        const textLength = fullText.length;
+
+        for (let i = 0; i < numberOfDivs; i++) {
+            const div = document.createElement('div');
+            
+            // Adjusted logic for determining text portion
+            let startIndex = (i * 400) % textLength;
+            let endIndex = startIndex + 400;
+            let textForDiv = fullText.slice(startIndex, endIndex);
+
+            // If the slice is shorter than 200 characters, wrap and continue from the beginning
+            if (textForDiv.length < 400) {
+                // Append from the start of the text to fulfill the remainder
+                let remainder = 400 - textForDiv.length;
+                textForDiv += fullText.slice(0, remainder);
+            }
+
+            div.textContent = textForDiv; 
+            divContainer.appendChild(div);
+        }
+    }
+
+    function appendRandomText(textWithoutLineBreaks) {
+        const divs = document.getElementById('codeContainer').children;
+        if (divs.length === 0) return; // Exit if no divs are found
+
+        // Attempt to select a random div that is not currently being manipulated
+        let attempts = 0;
+        let randomIndex;
+        do {
+            randomIndex = Math.floor(Math.random() * divs.length);
+            attempts++;
+            // Ensure we don't loop indefinitely
+            if (attempts > divs.length * 2) return;
+        } while (busyDivIndices.has(randomIndex));
+
+        busyDivIndices.add(randomIndex); // Mark this div as being manipulated
+        const randomDiv = divs[randomIndex];
+        let text = randomDiv.textContent;
+
+        // Find all space indices in the div text
+        const spaceIndices = [];
+        for (let i = 0; i < text.length; i++) {
+            if (text[i] === " ") spaceIndices.push(i);
+        }
+        // Ensure there is at least one space to work with
+        if (spaceIndices.length > 0) {
+            // Generate random text segment from textWithoutLineBreaks
+            const startSpaces = textWithoutLineBreaks.match(/\s+/g);
+            if (!startSpaces || startSpaces.length === 0) {
+                busyDivIndices.delete(randomIndex); // No spaces found in the source text, clear busy status
+                return;
+            }
+            const randomStartSpaceIndex = Math.floor(Math.random() * (startSpaces.length - 1));
+            const startSpaceIndex = textWithoutLineBreaks.indexOf(startSpaces[randomStartSpaceIndex]);
+            let endSpaceIndex = startSpaceIndex + 5 + Math.floor(Math.random() * 16); // 5 to 30 characters
+            
+            // Adjust endSpaceIndex to ensure it ends with a space
+            while (endSpaceIndex < textWithoutLineBreaks.length && textWithoutLineBreaks[endSpaceIndex] !== ' ') {
+                endSpaceIndex++;
+            }
+
+            // Extract the substring
+            const randomTextSegment = textWithoutLineBreaks.substring(startSpaceIndex, endSpaceIndex + 1);
+
+            // Select a random space index in the div to insert the text
+            const randomDivSpaceIndex = spaceIndices[Math.floor(Math.random() * spaceIndices.length)];
+            // Prepare to insert the random text segment after the selected space
+            const beforeText = text.slice(0, randomDivSpaceIndex + 1);
+            const afterText = text.slice(randomDivSpaceIndex + 1);
+            
+            // Function to insert text character by character
+            let insertIndex = 0;
+            function insertTextByChar() {
+                if (insertIndex < randomTextSegment.length) {
+                    randomDiv.textContent = beforeText + randomTextSegment.slice(0, insertIndex + 1) + afterText;
+                    insertIndex++;
+                    setTimeout(insertTextByChar, 100); // Continue inserting next character after timeout
+                } else {
+                    busyDivIndices.delete(randomIndex); // Clear busy status once text insertion is complete
+                }
+            }
+
+            insertTextByChar(); // Start inserting text character by character
+        } else {
+            // If no space was found, clear the busy status immediately
+            busyDivIndices.delete(randomIndex);
+        }
+    }
+
+
+
+    // Initial call to fetch text and create divs
+    fetchAndDisplayText().then(() => {
+        setInterval(() => appendRandomText(textWithoutLineBreaks), 50);
+    });
+
+    // Recreate divs on window resize
+    window.onresize = function() {
+        fetchAndDisplayText(); // Consider optimizing to avoid refetching the text file on resize
+    };
+
+});

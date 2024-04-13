@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>syntask</title>
+    <style>
+        @font-face {
+            font-family: JetBrainsMono-Regular;
+            src: url(JetBrainsMono-Regular.woff2);
+        }
+        @font-face {
+            font-family: JetBrainsMono-Bold;
+            src: url(JetBrainsMono-Bold.woff2);
+        }
+        #navbar{
+            position: fixed;
+            width: 100%;
+            height: max-content;
+            text-align: right;
+            padding-top: 16px;
+        }
+        #navbar a{
+            padding: 16px;
+            color: #c695c6;
+        }
+        body {
+            background-color: #303841;
+            font-family: JetBrainsMono-Regular;
+            font-size: 14px;
+            margin: 0px;
+            color: #8e95a1;
+        }
+        h1{
+            font-size: 32px;
+            margin-bottom: 8px;
+            color: #99c794;
+        }
+        h7{
+            font-size: 14px;
+            margin-top: 8px;
+        }
+        #heroContainer{
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+        #heroContentContainer{
+            width: 800px;
+            max-width: calc(100% - 24px);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        #codeContainer{
+            position: absolute;
+            width: max-content;
+            word-break: break-all;
+            color: #8e95a122;
+            user-select: none; /* Standard syntax */
+            -webkit-user-select: none; /* Safari, Chrome, and Opera */
+            -moz-user-select: none; /* Firefox */
+            -ms-user-select: none; /* Internet Explorer */
+            cursor: default;
+            z-index: -1;
+            overflow: hidden;
+        }
+        #sectionAbout{
+            height: 100vh;
+            position: relative;
+        }
+        #aboutContainer{
+            position: relative;
+            width: max-content;
+            height: max-content;
+            display: flex;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 1px solid white;
+        }
+        #aboutText{
+            width:300px;
+        }
+        #sectionPortfolio{
+            height: 100vh;
+            position: relative;
+        }
+        #sectionContact{
+            height: 100vh;
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <div id="navbar">
+        <a>About</a>
+        <a>Portfolio</a>
+        <a>Contact</a>
+    </div>
+    <div id="heroContainer">
+        <div id="heroContentContainer">
+            <h1>Creating exceptional online experiences for small businesses & startups. </h1>
+            <h7>This website is under construction. More information will be available soon, please check back later. </h7>
+        </div>
+        <div id="codeContainer"></div>
+    </div>
+    <div id="sectionAbout">
+        <div id="aboutContainer">
+            <div id="aboutText">
+            <h1>About</h1>
+            <h7>About section will go here</h7>
+            </div>
+            <div id="aboutImage">World
+            </div>
+        </div>
+    </div>
+    <div id="sectionPortfolio">
+        Portfolio section will go here...
+    </div>
+    <div id="sectionContact">
+        Contact section will go here...
+    </div>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    let textWithoutLineBreaks = "";
+    let busyDivIndices = new Set();
+    // Function to fetch and display text from a local file
+    function fetchAndDisplayText() {
+        // Return the fetch promise chain
+        return fetch('text.txt')
+            .then(response => response.text())
+            .then(text => {
+                textWithoutLineBreaks = text.replace(/\s+/g, " ");
+                createDivs(textWithoutLineBreaks);
+            })
+            .catch(error => console.error('Error fetching the text file:', error));
+    }
+
+    // Function to create divs based on viewport height and fill them with text
+    function createDivs(fullText) {
+        const divContainer = document.getElementById('codeContainer');
+        if (!divContainer) {
+            console.error('codeContainer not found');
+            return;
+        }
+
+        // Clear existing divs
+        divContainer.innerHTML = '';
+
+        const viewportHeight = window.innerHeight;
+        const numberOfDivs = Math.ceil(viewportHeight / 14);
+        const textLength = fullText.length;
+
+        for (let i = 0; i < numberOfDivs; i++) {
+            const div = document.createElement('div');
+            
+            // Adjusted logic for determining text portion
+            let startIndex = (i * 400) % textLength;
+            let endIndex = startIndex + 400;
+            let textForDiv = fullText.slice(startIndex, endIndex);
+
+            // If the slice is shorter than 200 characters, wrap and continue from the beginning
+            if (textForDiv.length < 400) {
+                // Append from the start of the text to fulfill the remainder
+                let remainder = 400 - textForDiv.length;
+                textForDiv += fullText.slice(0, remainder);
+            }
+
+            div.textContent = textForDiv; 
+            divContainer.appendChild(div);
+        }
+    }
+
+    function appendRandomText(textWithoutLineBreaks) {
+        const divs = document.getElementById('codeContainer').children;
+        if (divs.length === 0) return; // Exit if no divs are found
+
+        let attempts = 0;
+        let randomIndex;
+        do {
+            randomIndex = Math.floor(Math.random() * divs.length);
+            attempts++;
+            if (attempts > divs.length * 2) return; // Avoid infinite loops
+        } while (busyDivIndices.has(randomIndex));
+
+        busyDivIndices.add(randomIndex); // Mark this div as being manipulated
+        const randomDiv = divs[randomIndex];
+        let text = randomDiv.textContent;
+
+        if (!text.includes(" ")) {
+            busyDivIndices.delete(randomIndex); // Clear the busy status immediately if no space
+            return;
+        }
+
+        // Randomly determine start index for text insertion
+        let randomStartIndex = Math.floor(Math.random() * (textWithoutLineBreaks.length - 30));
+        randomStartIndex = textWithoutLineBreaks.indexOf(' ', randomStartIndex);
+        let segmentLength = 5 + Math.floor(Math.random() * 26); // Determine random segment length between 5 and 30
+        let endSpaceIndex = textWithoutLineBreaks.indexOf(' ', randomStartIndex + segmentLength);
+        if (endSpaceIndex === -1 || endSpaceIndex - randomStartIndex > 30) {
+            endSpaceIndex = textWithoutLineBreaks.indexOf(' ', randomStartIndex + 5); // Adjust if necessary
+        }
+
+        // Extract the substring ensuring it starts and ends with a space
+        const randomTextSegment = textWithoutLineBreaks.substring(randomStartIndex, endSpaceIndex + 1);
+
+        // Identify a space in the current div's text to insert the randomTextSegment
+        const spaceIndices = text.split('').reduce((acc, char, idx) => {
+            if (char === " ") acc.push(idx);
+            return acc;
+        }, []);
+
+        const insertAtSpaceIndex = spaceIndices[Math.floor(Math.random() * spaceIndices.length)];
+        const beforeText = text.slice(0, insertAtSpaceIndex + 1);
+        const afterText = text.slice(insertAtSpaceIndex + 1);
+
+        let insertIndex = 0;
+        function insertTextByChar() {
+            if (insertIndex < randomTextSegment.length) {
+                randomDiv.textContent = beforeText + randomTextSegment.slice(0, insertIndex + 1) + afterText;
+                insertIndex++;
+                setTimeout(insertTextByChar, 50); // Insert next character after 50ms
+            } else {
+                busyDivIndices.delete(randomIndex); // Clear busy status once text insertion is complete
+            }
+        }
+
+        insertTextByChar(); // Start the character-by-character insertion
+    }
+
+
+
+
+    // Initial call to fetch text and create divs
+    fetchAndDisplayText().then(() => {
+        setInterval(() => appendRandomText(textWithoutLineBreaks), 50);
+    });
+
+    // Recreate divs on window resize
+    window.onresize = function() {
+        fetchAndDisplayText(); // Consider optimizing to avoid refetching the text file on resize
+    };
+
+});
+</script>
+</body>
+</html>
